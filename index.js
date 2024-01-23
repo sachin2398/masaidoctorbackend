@@ -1,25 +1,31 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const cors = require('cors');
+require("dotenv").config();
 const bodyParser = require('body-parser');
-const authRoutes = require('./routes/authRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
-const { connection } = require("./db");
-const app = express();
-const PORT = 3001;
 
+
+const connection = require('./config/db');
+const { authRouter } = require('./routes/Auth.route');
+const authorization = require('./middlewares/authentication.middleware');
+const doctorRouter = require('./routes/Doctor.route');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
 app.use(bodyParser.json());
 
 
-app.use('/auth', authRoutes);
-app.use('/appointments', appointmentRoutes);
+app.use('/auth', authRouter);
+app.use('/doctors', authorization, doctorRouter);
 
-app.listen( 8000, async () => {
-  try {
-    await connection;
-    console.log("Connected to DataBase(MongoDB)");
-  } catch (err) {
-    console.log(err);
-    console.log("error while connecting to DataBase(MongoDB)");
-  }
-  console.log(`App is running on port 8000`);
+const port = process.env.PORT;
+app.listen(PORT, async() => {
+    try {
+        await connection;
+        console.log(`Server is running on port ${PORT}`);
+    } catch (error) {
+        console.error(error);
+    }
 });
